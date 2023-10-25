@@ -1,5 +1,6 @@
 # :telescope: telescope-jumps.nvim
 Jumps in change and jump lists in the current file.
+The change list is sorted and doesn't have duplicates.
 
 # Installation
 

@@ -21,6 +21,7 @@ end
 local function get_changes()
 	local last_changes = {}
 	local changes = vim.api.nvim_command_output 'changes'
+	local hash = {}
 
 	for change in changes:gmatch '[^\r\n]+' do
 		local match = change:gmatch '%d+'
@@ -28,8 +29,9 @@ local function get_changes()
 		local row = match()
 		local col = match()
 
-		if row then
-			table.insert(last_changes, { row = row, nr = nr, col = col, display = get_display(change, row) })
+		if row and not hash[row] then
+			hash[row] = true -- remove duplicates
+			table.insert(last_changes, { lnum = row, nr = nr, col = col, display = get_display(change, row) })
 		end
 	end
 	return reverse(last_changes)
@@ -67,24 +69,25 @@ local function show_changes(opts)
 			-- previewer = conf.qflist_previewer(opts),
 			sorter = conf.generic_sorter(opts),
 			-- sorting_strategy = "ascending",
-			attach_mappings = function(prompt_bufnr)
-				actions_set.select:replace(function()
-					local entry = actions_state.get_selected_entry()
-					actions.close(prompt_bufnr)
-					vim.cmd(string.format('call cursor(%d,%d)', entry.lnum, entry.col + 1))
-				end)
-				return true
-			end,
+			-- attach_mappings = function(prompt_bufnr)
+			-- 	actions_set.select:replace(function()
+			-- 		local entry = actions_state.get_selected_entry()
+			-- 		actions.close(prompt_bufnr)
+			-- 		vim.cmd(string.format('call cursor(%d,%d)', entry.value.row, entry.value.col + 1))
+			-- 	end)
+			-- 	return true
+			-- end,
 		}):find()
 end
 
 local function get_jumplist()
-	local jumplist = vim.fn.getjumplist(1, 1)[1] -- current buffer
+	local jumplist = vim.fn.getjumplist()[1]
 
+	local current_buffer = vim.fn.winbufnr(vim.fn.win_getid())
 	-- reverse the list
 	local sorted_jumplist = {}
 	for i = #jumplist, 1, -1 do
-		if vim.api.nvim_buf_is_valid(jumplist[i].bufnr) then
+		if vim.api.nvim_buf_is_valid(jumplist[i].bufnr) and current_buffer == jumplist[i].bufnr then
 			local text = vim.api.nvim_buf_get_lines(jumplist[i].bufnr, jumplist[i].lnum - 1, jumplist[i].lnum, false)[1]
 			if text then
 				jumplist[i].display = jumplist[i].lnum .. ': ' .. text
