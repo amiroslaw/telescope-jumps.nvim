@@ -1,9 +1,6 @@
 local pickers = require 'telescope.pickers'
 local finders = require 'telescope.finders'
 local conf = require('telescope.config').values
-local actions = require 'telescope.actions'
-local actions_state = require 'telescope.actions.state'
-local actions_set = require 'telescope.actions.set'
 
 -- TODO maybe remove empty lines  and '-invalid-'
 local function reverse(tab)
@@ -35,12 +32,6 @@ local function get_changes()
 		end
 	end
 	return reverse(last_changes)
-
-	-- simpler but doesn't work
-	-- local changes = vim.fn.getchangelist(vim.api.nvim_get_current_buf())[1]
-	--  for i = #changes, 1, -1 do
-	--   changes[i].display = vim.api.nvim_buf_get_lines(0, changes[i].lnum - 1, changes[i].lnum, false)[1] or ""
-	--  end
 end
 
 local function show_changes(opts)
@@ -57,7 +48,6 @@ local function show_changes(opts)
 						value = entry,
 						display = entry.display,
 						ordinal = entry.display,
-						-- ordinal = tostring(entry.nr),
 						lnum = tonumber(entry.lnum),
 						col = tonumber(entry.col),
 						filename = filepath,
@@ -66,17 +56,7 @@ local function show_changes(opts)
 				end,
 			},
 			previewer = conf.grep_previewer(opts),
-			-- previewer = conf.qflist_previewer(opts),
 			sorter = conf.generic_sorter(opts),
-			-- sorting_strategy = "ascending",
-			-- attach_mappings = function(prompt_bufnr)
-			-- 	actions_set.select:replace(function()
-			-- 		local entry = actions_state.get_selected_entry()
-			-- 		actions.close(prompt_bufnr)
-			-- 		vim.cmd(string.format('call cursor(%d,%d)', entry.value.row, entry.value.col + 1))
-			-- 	end)
-			-- 	return true
-			-- end,
 		}):find()
 end
 
